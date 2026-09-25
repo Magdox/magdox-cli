@@ -1,0 +1,63 @@
+# MAGDOX Code Security - GitHub Actions
+#
+# Add this workflow to .github/workflows/magdox.yml in your repository.
+# Required secret: MAGDOX_TOKEN (create with `magdox token create --label ci`)
+#
+# Optional: add MAGDOX_GITHUB_TOKEN (a GitHub Personal Access Token or the
+# built-in GITHUB_TOKEN with `pull-requests: write` permission) to have MAGDOX
+# post a findings summary comment on pull requests automatically.
+
+name: MAGDOX Security Scan
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write   # needed for PR comment posting
+
+jobs:
+  scan:
+    name: Security scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install MAGDOX CLI
+        run: |
+          curl -fsSL https://magdox.io/install.sh | sh
+          echo "$HOME/.magdox/bin" >> "$GITHUB_PATH"
+
+      - name: Run scan
+        env:
+          MAGDOX_TOKEN: ${{ secrets.MAGDOX_TOKEN }}
+          MAGDOX_COMMIT: ${{ github.sha }}
+          MAGDOX_BRANCH: ${{ github.head_ref || github.ref_name }}
+          # PR context — auto-detected by the CLI from GITHUB_REF and GITHUB_REPOSITORY.
+          # The comment is posted only when a MAGDOX_GITHUB_TOKEN is configured in
+          # Settings > Integrations in your MAGDOX dashboard.
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          magdox scan . \
+            --upload \
+            --project "${{ github.event.repository.name }}" \
+            --fail-on high \
+            --format text
+
+      # Optional: full scan with all surfaces
+      # - name: Full scan
+      #   env:
+      #     MAGDOX_TOKEN: ${{ secrets.MAGDOX_TOKEN }}
+      #     MAGDOX_COMMIT: ${{ github.sha }}
+      #     MAGDOX_BRANCH: ${{ github.head_ref || github.ref_name }}
+      #     GITHUB_REPOSITORY: ${{ github.repository }}
+      #     GITHUB_REF: ${{ github.ref }}
+      #   run: |
+      #     magdox scan . \
+      #       --full \
+      #       --upload \
+      #       --project "${{ github.event.repository.name }}" \
+      #       --fail-on high

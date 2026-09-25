@@ -1,0 +1,42 @@
+# MAGDOX Code Security - Bitbucket Pipelines
+#
+# Add this to your bitbucket-pipelines.yml or merge the step definition.
+# Required variable: MAGDOX_TOKEN (set in Repository Settings > Repository variables, secured)
+#
+# Optional: configure a MAGDOX_BITBUCKET_TOKEN (a Bitbucket app password with
+# pull-requests:write scope) in Settings > Integrations in your MAGDOX dashboard
+# to enable automatic PR comments.
+
+pipelines:
+  default:
+    - step:
+        name: MAGDOX Security Scan
+        image: ubuntu:24.04
+        script:
+          - curl -fsSL https://magdox.io/install.sh | sh
+          - export PATH="$HOME/.magdox/bin:$PATH"
+          - MAGDOX_COMMIT="$BITBUCKET_COMMIT"
+            MAGDOX_BRANCH="$BITBUCKET_BRANCH"
+            magdox scan .
+              --upload
+              --project "$BITBUCKET_REPO_SLUG"
+              --fail-on high
+              --format text
+          # PR context (BITBUCKET_PR_ID, BITBUCKET_REPO_FULL_NAME) is set automatically
+          # by Bitbucket Pipelines on pull-request builds and detected by the CLI.
+
+  pull-requests:
+    '**':
+      - step:
+          name: MAGDOX Security Scan (PR)
+          image: ubuntu:24.04
+          script:
+            - curl -fsSL https://magdox.io/install.sh | sh
+            - export PATH="$HOME/.magdox/bin:$PATH"
+            - MAGDOX_COMMIT="$BITBUCKET_COMMIT"
+              MAGDOX_BRANCH="$BITBUCKET_BRANCH"
+              magdox scan .
+                --upload
+                --project "$BITBUCKET_REPO_SLUG"
+                --fail-on high
+                --format text
