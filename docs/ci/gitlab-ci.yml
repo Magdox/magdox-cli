@@ -1,0 +1,38 @@
+# MAGDOX Code Security - GitLab CI
+#
+# Include this in your .gitlab-ci.yml or copy the job definition.
+# Required variable: MAGDOX_TOKEN (set in Settings > CI/CD > Variables, masked)
+#
+# Optional: configure a MAGDOX_GITLAB_TOKEN (a GitLab access token with api scope)
+# in Settings > Integrations in your MAGDOX dashboard to enable automatic MR comments.
+
+magdox:
+  stage: test
+  image: ubuntu:24.04
+  variables:
+    MAGDOX_COMMIT: $CI_COMMIT_SHA
+    MAGDOX_BRANCH: $CI_COMMIT_REF_NAME
+    # MR context — auto-detected from CI_MERGE_REQUEST_IID, CI_PROJECT_NAMESPACE,
+    # and CI_PROJECT_NAME when the pipeline is triggered by a merge request.
+  before_script:
+    - curl -fsSL https://magdox.io/install.sh | sh
+    - export PATH="$HOME/.magdox/bin:$PATH"
+  script:
+    - magdox scan .
+        --upload
+        --project "$CI_PROJECT_NAME"
+        --fail-on high
+        --format text
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Optional: full scan with all surfaces
+# magdox-full:
+#   extends: magdox
+#   script:
+#     - magdox scan .
+#         --full
+#         --upload
+#         --project "$CI_PROJECT_NAME"
+#         --fail-on high
