@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://magdox.io/schema/findings-payload.v1.json",
+  "title": "MAGDOX findings upload v1 (legacy)",
+  "description": "Scan-result upload only. Authentication, rule downloads and AIBOM use separate paths. Snippets require include_code and receiving-project permission. API also validates paths, byte limits, timestamps and unique pass names.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "project": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,62}[a-z0-9]$"
+    },
+    "commit": {
+      "type": "string"
+    },
+    "branch": {
+      "type": "string"
+    },
+    "scanned_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cli_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fingerprint": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{16,64}$"
+          },
+          "rule": {
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "info"
+            ]
+          },
+          "confidence": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 1024
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "end_line": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "message": {
+            "type": "string"
+          },
+          "limits": {
+            "type": "string"
+          },
+          "snippet": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "surface": {
+            "enum": [
+              "sast",
+              "iac",
+              "sca",
+              "secrets",
+              "crypto"
+            ]
+          },
+          "package": {
+            "type": "string"
+          },
+          "ecosystem": {
+            "type": "string"
+          },
+          "installed": {
+            "type": "string"
+          },
+          "fixed_in": {
+            "type": "string"
+          },
+          "direct": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "fingerprint",
+          "rule",
+          "severity",
+          "path",
+          "line",
+          "surface"
+        ]
+      },
+      "maxItems": 1000000
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "files_scanned": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "files_skipped": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "files_failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rules_run": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rules_unsupported": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "files_scanned",
+        "files_skipped",
+        "files_failed",
+        "rules_run"
+      ]
+    },
+    "include_code": {
+      "type": "boolean"
+    },
+    "pr": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "provider": {
+          "enum": [
+            "github",
+            "gitlab",
+            "bitbucket"
+          ]
+        },
+        "owner": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "repo": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "provider",
+        "owner",
+        "repo",
+        "number"
+      ]
+    },
+    "collected": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "sast",
+          "iac",
+          "sca",
+          "secrets",
+          "crypto"
+        ]
+      }
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "ecosystem": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "purl": {
+            "type": "string",
+            "maxLength": 1024
+          },
+          "direct": {
+            "type": "boolean"
+          },
+          "manifest": {
+            "type": "string",
+            "maxLength": 1024
+          }
+        },
+        "required": [
+          "name",
+          "version",
+          "ecosystem",
+          "purl",
+          "direct"
+        ]
+      },
+      "maxItems": 1000000
+    },
+    "crypto": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "algorithm": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "kind": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "assessment": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "quantum_vulnerable": {
+            "type": "boolean"
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 1024
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "algorithm",
+          "kind",
+          "assessment",
+          "path",
+          "line"
+        ]
+      },
+      "maxItems": 1000000
+    }
+  },
+  "required": [
+    "version",
+    "project",
+    "scanned_at",
+    "cli_version",
+    "findings",
+    "coverage",
+    "include_code"
+  ]
+}
