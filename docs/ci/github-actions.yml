@@ -1,34 +1,72 @@
 # MAGDOX Code Security - GitHub Actions
 #
-# Add this workflow to .github/workflows/magdox.yml in your repository.
+# Add this workflow to .github/workflows/magdox.yml in your PRIVATE repository.
+# Manual runs on the default branch only; never enable in a public repository.
 # Required secret: MAGDOX_TOKEN (create with `magdox token create --label ci`)
 #
-# Optional: add MAGDOX_GITHUB_TOKEN (a GitHub Personal Access Token or the
-# built-in GITHUB_TOKEN with `pull-requests: write` permission) to have MAGDOX
-# post a findings summary comment on pull requests automatically.
+# Prerequisite: a published MAGDOX 1.2.0 launcher release and an available
+# authenticated distribution service with signed engine artifacts and rules.
+# MAGDOX_TOKEN must have product access. These examples do not establish that
+# the release/service is deployed or that this workflow has run in hosted CI.
+# Legacy choice: keep an approved, pinned monolithic CLI in a separate job and
+# omit `magdox install` there. Never ignore a failed install to fall back to it.
+#
+# Scanner-only job: do not add repository builds, dependency installs or hooks.
+# Use an ephemeral non-root runner with curl, Python 3.9+ and CA certificates.
+# Never cache/upload MAGDOX config, credentials, rules, engines or plugins as CI
+# artifacts. Do not provide the token to public forks or use pull_request_target.
+# Optional PR comments use the integration credential configured in the MAGDOX
+# dashboard; this scanner job does not need pull-requests: write.
 
 name: MAGDOX Security Scan
 
 on:
-  push:
-    branches: [main, master, develop]
-  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
-  pull-requests: write   # needed for PR comment posting
 
 jobs:
   scan:
     name: Security scan
+    # Public logs and fork/PR runs must not receive private components.
+    if: github.event_name == 'workflow_dispatch' && github.event.repository.private == true && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
+    env:
+      MAGDOX_VERSION: "1.2.0" # Change only to another approved, published 1.2+ release.
+      MAGDOX_PROJECT: ${{ github.event.repository.name }}
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Install MAGDOX CLI
+      - name: Isolate MAGDOX state on the runner
+        shell: bash
         run: |
-          curl -fsSL https://magdox.io/install.sh | sh
-          echo "$HOME/.magdox/bin" >> "$GITHUB_PATH"
+          set -euo pipefail
+          umask 077
+          echo "MAGDOX_INSTALL_DIR=$RUNNER_TEMP/magdox-bin" >> "$GITHUB_ENV"
+          echo "MAGDOX_CONFIG_DIR=$RUNNER_TEMP/magdox-config" >> "$GITHUB_ENV"
+          echo "MAGDOX_CACHE_DIR=$RUNNER_TEMP/magdox-cache" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Install public MAGDOX launcher
+        run: |
+          set -eu
+          installer=$(mktemp "$RUNNER_TEMP/magdox-installer.XXXXXX")
+          trap 'rm -f -- "$installer"' EXIT
+          curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' \
+            https://magdox.io/install.sh --output "$installer"
+          sh "$installer"
+          echo "$MAGDOX_INSTALL_DIR" >> "$GITHUB_PATH"
+
+      - name: Authorize and install private engine
+        env:
+          MAGDOX_TOKEN: ${{ secrets.MAGDOX_TOKEN }}
+        run: |
+          set -eu
+          : "${MAGDOX_TOKEN:?Configure the MAGDOX_TOKEN secret with product access}"
+          magdox version
+          magdox install
 
       - name: Run scan
         env:
@@ -43,7 +81,7 @@ jobs:
         run: |
           magdox scan . \
             --upload \
-            --project "${{ github.event.repository.name }}" \
+            --project "$MAGDOX_PROJECT" \
             --fail-on high \
             --format text
 
@@ -59,5 +97,5 @@ jobs:
       #     magdox scan . \
       #       --full \
       #       --upload \
-      #       --project "${{ github.event.repository.name }}" \
+      #       --project "$MAGDOX_PROJECT" \
       #       --fail-on high

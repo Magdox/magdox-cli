@@ -52,8 +52,10 @@ Unrequested passes are `not_requested`, not clean.
 `scan` now exits **3** when a requested pass is partial or skipped, including
 zero useful coverage, unresolved dependency versions and no usable vulnerability
 database for `--full`. Review JSON coverage even when no findings were emitted. Existing
-severity gates use exit **4**. Upload policy failures can also return **4**.
-Fatal errors still stop the command; no successful run is fabricated or uploaded.
+severity gates use exit **4**, which takes precedence when a scan is both
+incomplete and over the threshold (the incomplete notice is still printed).
+Upload policy failures also return **4**. A scan or upload that fails outright
+exits **1**; no successful run is fabricated or uploaded.
 
 The server conservatively avoids closing findings when coverage is incomplete
 or when rule content, advisory content, test scope or pass statuses differ from

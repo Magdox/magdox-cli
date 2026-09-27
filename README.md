@@ -6,6 +6,12 @@ on your own machine. Findings and inventories upload only when requested;
 authentication and rule renewal have separate network paths. Source snippets
 require explicit sharing consent.
 
+This branch documents the upcoming **v1.2** CLI/MCP workflow (internal package
+version `1.2.0`), not a release announcement. Private engine, MCP and plugin
+components require authenticated product access and server-side provisioning.
+Older installed releases may behave differently; no new public plugin package
+is introduced.
+
 See [scan evidence and release packages](docs/evidence.md) for the working-tree
 v2 upload contract, completeness behavior, local packaging and rollout order.
 
@@ -28,10 +34,11 @@ Release archives and checksums are on the [releases page](https://github.com/Mag
 Every checksum file is signed with Sigstore cosign. The npm installer checks
 that signature against the release workflow's identity, then the SHA-256
 checksum. The shell installer checks the SHA-256 checksum obtained over HTTPS;
-it needs curl, tar and sha256sum or shasum, installs to `/usr/local/bin` (using
-sudo only when that directory is not writable), and honours
-`MAGDOX_INSTALL_DIR` and `MAGDOX_VERSION`. The CLI itself never needs root:
-scan as your ordinary user.
+it needs curl and Python 3 for bounded archive and checksum verification,
+defaults to the user-owned `$HOME/.local/bin`, refuses root execution, and
+never invokes sudo. It honours `MAGDOX_INSTALL_DIR` and `MAGDOX_VERSION`.
+Add the chosen install directory to your PATH. The CLI itself never needs
+root: scan as your ordinary user.
 
 ## Use
 
@@ -59,10 +66,34 @@ Gradle, NuGet, Cargo, Composer, Bundler and SwiftPM. See
 [docs/dependencies.md](docs/dependencies.md) for the files, precedence and
 what is reported as unresolved.
 
-Code scans and SARIF exports exit 3 when files fail or rules are unsupported,
-while retaining partial findings and coverage. JSON coverage includes up to
-128 relative failed paths and reasons. A short report from an incomplete scan
-does not establish that the other code is clean.
+The default text report opens with a severity table (one row per engine that
+ran, plus combined totals), then at most eight severity/type groups per engine,
+worst first, with counts and example locations. Omitted groups are counted
+explicitly; totals, uploads and exit codes still include every finding.
+Low-confidence candidates are labelled for review. Hotspot files and coverage
+follow. `--details` lists every finding with its explanation, snippet and fix.
+Progress starts immediately and goes to stderr only: one updating line on a
+terminal, or one line per phase in CI. `--quiet` turns off progress, not coverage
+warnings. `--upload` adds one line with new/fixed/total counts and a console link.
+
+The offline HTML report opens with severity counts, engine charts and a type
+index. Filter findings by severity, engine, vulnerability type and path. View
+25, 50 or 100 numbered findings per page; expand an individual finding for
+code, remediation and public CWE classification.
+Private rule identifiers and rule-authored references are not included.
+These output improvements are in the working source for the next release;
+check `magdox version` before expecting them in an older installed CLI.
+
+Exit codes: 0 is a complete scan with nothing at or above `--fail-on`; 1 means
+the scan, the upload or an option failed; 3 means incomplete coverage (a pass
+was partial or skipped, and stderr says why: files over the time budget,
+skipped as generated or over 2 MiB, unsupported rules, unpinned dependency
+versions); 4 means a finding reached `--fail-on` or the server's policy
+failed. When a scan is both incomplete and over the threshold it exits 4, and
+the incomplete notice is still printed. Partial findings and coverage are
+kept in every case; JSON coverage lists up to 128 relative failed paths with
+reasons. A short report from an incomplete scan does not establish that the
+other code is clean.
 
 Scanning uses at most four workers, further bounded by `GOMAXPROCS`. For a
 shared machine, `GOMAXPROCS=2 magdox scan ...` limits concurrent native analysis.

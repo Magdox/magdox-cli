@@ -1,46 +1,44 @@
-# MAGDOX MCP Server
+# MAGDOX MCP quick setup
 
-The `magdox-mcp` server exposes MAGDOX scanning as MCP tools for AI coding editors.
-Full reference: [mcp.md](mcp.md). Signed binaries are on the `mcp-v*` releases of this repository. Install it separately:
+Upcoming v1.2 workflow (internal version 1.2.0). Publication and private component
+availability are separate release gates; these instructions are not a release announcement.
+
+Use your approved installed MAGDOX launcher. Complete authentication and private
+component installation in a terminal:
 
 ```sh
-npm install -g @magdox/mcp   # or: npx @magdox/mcp
+magdox login
+magdox mcp install
+magdox mcp config generic --root "/absolute/path/to/project"
 ```
 
-It runs the `magdox` CLI on this machine; it ships no rules and no licence.
+Login prepares device authorization, the private engine and rules. MCP installation
+requires online authorization and verifies the signed private MCP and plugin
+components. It does not automatically install host settings or hooks.
 
-## Tools
+Review and merge the generated configuration into your client's local MCP
+settings. It uses the absolute launcher path, separate `mcp serve --root ABS`
+arguments and no shell. Select an existing absolute project directory. Do not
+put credentials in the configuration or overwrite unrelated settings.
 
-- `magdox_scan`: scan a directory for security findings
-- `magdox_check_code`: check a code snippet inline without writing to disk
-- `magdox_aibom`: inventory AI SDKs in a project
-- `magdox_audit`: audit dependencies for vulnerabilities
-- `magdox_secrets`: scan for committed secrets
+For direct stdio operation:
 
-All tools are read-only. `magdox_explain_finding` is not offered: the rule
-catalogue is sealed inside the bundle, so findings carry their own title,
-message and remediation instead.
-
-## Setup
-
-Let the server print the setup for your client, with the absolute path to
-`magdox-mcp` and `MAGDOX_BIN` pointing at the `magdox` binary. Desktop apps
-start servers without your shell's PATH, so a bare `magdox-mcp` often fails.
-
-```
-magdox-mcp config <client> --root /path/to/project
+```sh
+magdox mcp serve --root "/absolute/path/to/project"
 ```
 
-Clients: `claude-desktop`, `claude-code`, `cursor`, `vscode`, `windsurf`,
-`gemini`, `codex`, `chatgpt`, `cline`, `generic`. `--root` limits the folders
-the server may read and can be repeated.
+Use `--offline` only after preparing components and caches online, while offline
+authorization remains valid. Missing access, rules, advisory data or coverage
+is unchecked, not clean.
 
-ChatGPT and other web clients use `magdox-mcp --http 127.0.0.1:8787 --root <project>`
-behind a tunnel you control; the token it prints is the credential.
+The optional public npm package is a forwarding shim only: it downloads no
+binary and includes no private engine, rules, hooks or skill files. It cannot
+replace `magdox mcp install`. The generated absolute-launcher configuration
+does not require Node or a shell on a desktop client's PATH.
 
-## Requirements
+Templates require host-specific review; no native plugin registration or live
+host/schema verification is claimed. There is no hosted endpoint or public
+tunnel setup. Snippet checks use a private temporary file, not an in-memory
+scanner.
 
-- `@magdox/mcp` installed (`npm install -g @magdox/mcp`) and the `magdox` CLI installed with npm or Homebrew
-- `magdox login` completed in a terminal (the server runs your signed-in CLI; it ships no rules and no licence)
-
-Full details in the MCP repository README.
+See [full MCP reference](mcp.md) and [agent workflow](mcp-agent-workflow.md).

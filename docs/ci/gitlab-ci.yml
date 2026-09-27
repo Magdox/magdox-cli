@@ -1,22 +1,52 @@
 # MAGDOX Code Security - GitLab CI
 #
-# Include this in your .gitlab-ci.yml or copy the job definition.
-# Required variable: MAGDOX_TOKEN (set in Settings > CI/CD > Variables, masked)
+# Include this in your PRIVATE project's .gitlab-ci.yml or copy the job definition.
+# Required variable: MAGDOX_TOKEN (masked/protected CI variable with product access).
+# Make it available only to trusted jobs in the owning private project, never forks.
+# Start a pipeline manually on the protected default branch, then approve this
+# manual scanner job. Public/internal projects and MR pipelines are excluded.
+#
+# Prerequisite: a published MAGDOX 1.2.0 launcher release and an available
+# authenticated distribution service with signed engine artifacts and rules.
+# This example does not establish deployment or a successful hosted CI run.
+# Legacy choice: keep an approved, pinned monolithic CLI in a separate job and
+# omit `magdox install` there. Never ignore a failed install to fall back to it.
+#
+# Replace the image placeholder with an approved image that runs as non-root,
+# includes sh, curl, Python 3.9+, mktemp and CA certificates, and has a writable
+# checkout and /tmp. Use an ephemeral runner; do not build this image from the
+# scanned repository in this job. Stock ubuntu:24.04 alone is insufficient.
+# Run scanners only: no repository builds, dependency installation or hooks.
+# Do not cache/upload MAGDOX config, credentials, rules, engines or plugins.
 #
 # Optional: configure a MAGDOX_GITLAB_TOKEN (a GitLab access token with api scope)
 # in Settings > Integrations in your MAGDOX dashboard to enable automatic MR comments.
 
 magdox:
   stage: test
-  image: ubuntu:24.04
+  image: your-registry.example/magdox-ci:approved # Replace with your approved image/digest.
+  inherit:
+    default: false # Do not inherit repository build hooks, caches or artifacts.
+  cache: []
   variables:
+    MAGDOX_VERSION: "1.2.0" # Change only to another approved, published 1.2+ release.
     MAGDOX_COMMIT: $CI_COMMIT_SHA
     MAGDOX_BRANCH: $CI_COMMIT_REF_NAME
-    # MR context — auto-detected from CI_MERGE_REQUEST_IID, CI_PROJECT_NAMESPACE,
-    # and CI_PROJECT_NAME when the pipeline is triggered by a merge request.
   before_script:
-    - curl -fsSL https://magdox.io/install.sh | sh
-    - export PATH="$HOME/.magdox/bin:$PATH"
+    - |
+      set -eu
+      : "${MAGDOX_TOKEN:?Configure the masked MAGDOX_TOKEN variable with product access}"
+      test "$(id -u)" -ne 0 || { echo "Use the required non-root scanner image" >&2; exit 1; }
+      magdox_state=$(mktemp -d /tmp/magdox-ci.XXXXXXXX)
+      export MAGDOX_INSTALL_DIR="$magdox_state/bin"
+      export MAGDOX_CONFIG_DIR="$magdox_state/config"
+      export MAGDOX_CACHE_DIR="$magdox_state/cache"
+      export PATH="$MAGDOX_INSTALL_DIR:$PATH"
+      curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' \
+        https://magdox.io/install.sh --output "$magdox_state/install.sh"
+      sh "$magdox_state/install.sh"
+      magdox version
+      magdox install
   script:
     - magdox scan .
         --upload
@@ -24,8 +54,10 @@ magdox:
         --fail-on high
         --format text
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: '$CI_PROJECT_VISIBILITY == "private" && $CI_COMMIT_REF_PROTECTED == "true" && $CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $MAGDOX_TOKEN'
+      when: manual
+      allow_failure: false
+    - when: never
 
 # Optional: full scan with all surfaces
 # magdox-full:

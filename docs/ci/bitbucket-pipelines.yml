@@ -1,38 +1,52 @@
 # MAGDOX Code Security - Bitbucket Pipelines
 #
-# Add this to your bitbucket-pipelines.yml or merge the step definition.
+# Add this to your PRIVATE repository's bitbucket-pipelines.yml.
+# Manual custom pipeline only: run on the trusted default branch. Before use,
+# an administrator must confirm the repository and its pipeline logs are private
+# and set repository variable MAGDOX_PRIVATE_REPOSITORY_CONFIRMED=true. This is
+# an explicit setup precondition, not an API verification of repository visibility.
+# Do not override it in the run dialog or enable this template in a public fork.
 # Required variable: MAGDOX_TOKEN (set in Repository Settings > Repository variables, secured)
+# It must have product access. Set it only in the owning repository, never in
+# public forks or as a workspace-wide secret available to untrusted repositories.
 #
-# Optional: configure a MAGDOX_BITBUCKET_TOKEN (a Bitbucket app password with
-# pull-requests:write scope) in Settings > Integrations in your MAGDOX dashboard
-# to enable automatic PR comments.
+# Prerequisite: a published MAGDOX 1.2.0 launcher release and an available
+# authenticated distribution service with signed engine artifacts and rules.
+# This example does not establish deployment or a successful hosted CI run.
+# Legacy choice: keep an approved, pinned monolithic CLI in a separate job and
+# omit `magdox install` there. Never ignore a failed install to fall back to it.
+#
+# Replace each image placeholder with an approved image that runs as non-root,
+# includes sh, curl, Python 3.9+, mktemp and CA certificates, and has a writable
+# checkout and /tmp. Use ephemeral runners. Do not build the image or execute
+# repository builds, dependency installs or hooks in these scanner-only steps.
+# Do not add caches or artifacts containing MAGDOX config, credentials, rules,
+# engines or plugins. Private state stays outside the checkout for this job only.
+# No automatic push/PR pipelines are defined here.
 
 pipelines:
-  default:
-    - step:
-        name: MAGDOX Security Scan
-        image: ubuntu:24.04
-        script:
-          - curl -fsSL https://magdox.io/install.sh | sh
-          - export PATH="$HOME/.magdox/bin:$PATH"
-          - MAGDOX_COMMIT="$BITBUCKET_COMMIT"
-            MAGDOX_BRANCH="$BITBUCKET_BRANCH"
-            magdox scan .
-              --upload
-              --project "$BITBUCKET_REPO_SLUG"
-              --fail-on high
-              --format text
-          # PR context (BITBUCKET_PR_ID, BITBUCKET_REPO_FULL_NAME) is set automatically
-          # by Bitbucket Pipelines on pull-request builds and detected by the CLI.
-
-  pull-requests:
-    '**':
+  custom:
+    magdox-security:
       - step:
-          name: MAGDOX Security Scan (PR)
-          image: ubuntu:24.04
+          name: MAGDOX Security Scan (manual, private repository only)
+          image: your-registry.example/magdox-ci:approved # Replace with your approved image/digest.
           script:
-            - curl -fsSL https://magdox.io/install.sh | sh
-            - export PATH="$HOME/.magdox/bin:$PATH"
+            - |
+              set -eu
+              test "${MAGDOX_PRIVATE_REPOSITORY_CONFIRMED:-false}" = true || { echo "An administrator must confirm private repository/log visibility before use" >&2; exit 1; }
+              : "${MAGDOX_TOKEN:?Configure the secured MAGDOX_TOKEN variable with product access}"
+              test "$(id -u)" -ne 0 || { echo "Use the required non-root scanner image" >&2; exit 1; }
+              export MAGDOX_VERSION="1.2.0" # Approved published 1.2+ release required.
+              magdox_state=$(mktemp -d /tmp/magdox-ci.XXXXXXXX)
+              export MAGDOX_INSTALL_DIR="$magdox_state/bin"
+              export MAGDOX_CONFIG_DIR="$magdox_state/config"
+              export MAGDOX_CACHE_DIR="$magdox_state/cache"
+              export PATH="$MAGDOX_INSTALL_DIR:$PATH"
+              curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' \
+                https://magdox.io/install.sh --output "$magdox_state/install.sh"
+              sh "$magdox_state/install.sh"
+              magdox version
+              magdox install
             - MAGDOX_COMMIT="$BITBUCKET_COMMIT"
               MAGDOX_BRANCH="$BITBUCKET_BRANCH"
               magdox scan .
