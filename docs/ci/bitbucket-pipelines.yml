@@ -10,9 +10,10 @@
 # It must have product access. Set it only in the owning repository, never in
 # public forks or as a workspace-wide secret available to untrusted repositories.
 #
-# Prerequisite: a published MAGDOX 1.2.0 launcher release and an available
+# Prerequisite: the MAGDOX v1.2 launcher release (package version 1.2.0) and an available
 # authenticated distribution service with signed engine artifacts and rules.
-# This example does not establish deployment or a successful hosted CI run.
+# Provision the private engine before scanning. Review this template for your
+# runner and verify the resulting scan coverage.
 # Legacy choice: keep an approved, pinned monolithic CLI in a separate job and
 # omit `magdox install` there. Never ignore a failed install to fall back to it.
 #
@@ -36,7 +37,7 @@ pipelines:
               test "${MAGDOX_PRIVATE_REPOSITORY_CONFIRMED:-false}" = true || { echo "An administrator must confirm private repository/log visibility before use" >&2; exit 1; }
               : "${MAGDOX_TOKEN:?Configure the secured MAGDOX_TOKEN variable with product access}"
               test "$(id -u)" -ne 0 || { echo "Use the required non-root scanner image" >&2; exit 1; }
-              export MAGDOX_VERSION="1.2.0" # Approved published 1.2+ release required.
+              export MAGDOX_VERSION="v1.2" # Release namespace; npm/semantic version is 1.2.0.
               magdox_state=$(mktemp -d /tmp/magdox-ci.XXXXXXXX)
               export MAGDOX_INSTALL_DIR="$magdox_state/bin"
               export MAGDOX_CONFIG_DIR="$magdox_state/config"

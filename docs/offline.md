@@ -1,8 +1,13 @@
 # Offline and air-gapped use
 
-Matching never needs the network. The CLI needs two local files: the signed
-rule bundle and the vulnerability database. Online, both are fetched and
-cached automatically; offline, the cached copies are used.
+Matching runs locally. Before disconnecting, provision the authorized private
+engine, signed rule bundle and vulnerability database. Installing the public
+launcher alone does not install the engine or grant product access. Offline
+scans use verified local components and caches while authorization remains valid.
+
+Expiring licences allow up to seven days offline, bounded by licence expiry and
+the signed grant. Perpetual air-gapped use requires an explicit perpetual grant;
+an account role, cached artifact or `--offline` does not create that access.
 
 ## Flags and variables
 
@@ -33,6 +38,10 @@ cached automatically; offline, the cached copies are used.
 - `--ai` works only with a local provider (for example `magdox ai add ollama`).
 
 ## Air-gapped machines
+
+Arrange transfer of the private engine artifact and its signed manifest before
+the steps below. Importing rules or a licence alone does not install the engine.
+The launcher does not expose offline import for MCP or integration bundles.
 
 1. On a connected machine: `magdox login`, `magdox rules sync`,
    `magdox vulndb fetch`, then `magdox vulndb export magdox-vulns.bundle`

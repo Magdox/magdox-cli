@@ -1,7 +1,7 @@
 # Scan evidence and release packages
 
-This describes the implementation in this working tree. Deploy the updated API
-before distributing the CLI that sends payload version 2.
+MAGDOX v1.2 sends version 2 findings uploads to a compatible API and creates
+local report packages. Scanning requires an authorized private engine and rules.
 
 ## Review locally, then preview an optional upload
 
@@ -16,7 +16,9 @@ does not upload findings, including when `--upload` is also supplied.
 Authentication and rule renewal have their own network behavior. AIBOM uses a
 separate upload path; this preview does not cover it.
 
-Local JSON retains source context. Uploads retain finding location, confidence,
+Local JSON retains source context but omits private rule metadata. The
+`--show-payload` preview also omits private rule metadata; it is not the exact
+authenticated upload body. Uploads retain finding location, confidence,
 limits, captured rule guidance and ordered same-file flow evidence. Source
 snippets, including nested flow snippets, require `--include-code` and a project
 that permits snippets. The upload builder removes customer function names from
@@ -31,10 +33,12 @@ not live intelligence queries.
 
 ## Read completeness before finding counts
 
-JSON scan output contains `provenance`; uploads carry the same data under
-`coverage.provenance`. It records execution start/end, decoded rule-content
+Customer JSON includes coverage and available provenance while omitting private
+rule identifiers and rule digests. Authenticated uploads retain internal metadata
+under `coverage.provenance`, including execution start/end, decoded rule-content
 digest, decoded advisory-content digest/build time when used, test scope and
-the status of each pass. Server receipt time is separate.
+the status of each pass. Server receipt time is separate. Presentation redaction
+does not change finding fingerprints or the authenticated upload contract.
 
 The content digests identify the inputs the engine decoded; they are not archive
 signatures or proof of publisher identity. SAST and IaC currently share the
@@ -67,12 +71,18 @@ invented evidence.
 
 ## Package selected reports without network access
 
+Packing and verification process existing local reports without scanning. The
+public launcher still checks product authorization and may renew it online.
+To keep these commands offline, use `MAGDOX_OFFLINE=1` with a valid local grant
+and an already-installed verified private engine. Offline mode does not bypass
+access checks. Generate the required reports before running these commands.
+
 ```sh
-magdox evidence pack \
-  --project my-project --commit <reviewed-revision> --branch main \
+MAGDOX_OFFLINE=1 magdox evidence pack \
+  --project my-project --commit '<reviewed-revision>' --branch main \
   --scan scan.json --sbom sbom.json --out release-evidence.zip
 
-magdox evidence verify release-evidence.zip
+MAGDOX_OFFLINE=1 magdox evidence verify release-evidence.zip
 ```
 
 Optional inputs are `--sarif`, `--cbom`, `--aibom`, `--vex` and `--decisions`.
@@ -101,19 +111,13 @@ flow metadata. Snippets are omitted unless `include_code: true` is supplied;
 that option shares source with the MCP client and potentially its model.
 Tool execution failures are marked `isError: true`.
 
-## Server rollout
+## API compatibility
 
-1. Back up the database using the existing operational process.
-2. Start the updated API; the existing migration runner applies
-   `0026_scan_evidence.sql` (additive JSON evidence, line range and coverage columns).
-3. Deploy the updated web console.
-4. Distribute the v2 CLI and packaged MCP build.
-
-The API accepts v1 and v2 uploads. An older API rejects v2, deliberately avoiding
-silent evidence loss. Roll back CLI distribution to v1 before rolling back the
-API; retain the additive columns to preserve stored evidence. Existing findings
-do not gain historical traces until rescanned. No live database or deployment
-was changed as part of this implementation.
+The API accepts payload versions 1 and 2. An older API rejects version 2,
+deliberately avoiding silent evidence loss; use an API compatible with your CLI's
+payload version. Payload versions are separate from the v1.2 release namespace
+and the 1.2.0 package version. Existing findings do not gain historical traces
+until rescanned.
 
 ## Customer upload choice
 

@@ -1,7 +1,7 @@
 # MAGDOX MCP quick setup
 
-Upcoming v1.2 workflow (internal version 1.2.0). Publication and private component
-availability are separate release gates; these instructions are not a release announcement.
+Set up MAGDOX v1.2 with launcher 1.2.0 or later, product authorization and
+compatible signed private engine, MCP and plugin components.
 
 Use your approved installed MAGDOX launcher. Complete authentication and private
 component installation in a terminal:
@@ -39,6 +39,8 @@ does not require Node or a shell on a desktop client's PATH.
 Templates require host-specific review; no native plugin registration or live
 host/schema verification is claimed. There is no hosted endpoint or public
 tunnel setup. Snippet checks use a private temporary file, not an in-memory
-scanner.
+scanner. Only the Claude Code hook integration has been tested end to end;
+other host setups remain experimental. Automatic hooks are POSIX-only
+(macOS and Linux); Windows hooks are unsupported.
 
 See [full MCP reference](mcp.md) and [agent workflow](mcp-agent-workflow.md).

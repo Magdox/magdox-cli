@@ -1,7 +1,7 @@
 # MAGDOX in coding agents
 
-Upcoming v1.2 workflow (internal version 1.2.0). These instructions require the
-compatible launcher and provisioned private components, not merely this docs update.
+MAGDOX v1.2 requires launcher 1.2.0 or later, product authorization and
+compatible installed private engine, MCP and plugin components.
 
 Prepare the installed, licensed CLI and signed private bridge:
 
@@ -14,7 +14,9 @@ magdox mcp config generic --root "/absolute/path/to/project"
 Review and merge the generated entry into your client's local MCP settings.
 It starts the absolute MAGDOX launcher with separate stdio/root arguments.
 Do not overwrite existing settings or hooks. Templates require host-specific
-review; they are not native plugin registrations or evidence of live UI tests.
+review; they are not native plugin registrations. Only the Claude Code hook
+integration has been tested end to end; other host setups remain experimental.
+Automatic hooks are POSIX-only (macOS and Linux); Windows hooks are unsupported.
 
 The public npm shim ships no private skills, hooks, scanner or rules. The
 installed private MCP server offers the `magdox-secure-coding` prompt through

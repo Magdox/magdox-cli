@@ -6,27 +6,31 @@ on your own machine. Findings and inventories upload only when requested;
 authentication and rule renewal have separate network paths. Source snippets
 require explicit sharing consent.
 
-This branch documents the upcoming **v1.2** CLI/MCP workflow (internal package
-version `1.2.0`), not a release announcement. Private engine, MCP and plugin
-components require authenticated product access and server-side provisioning.
-Older installed releases may behave differently; no new public plugin package
-is introduced.
+**v1.2** uses a public launcher to provision the private engine, MCP server and
+signed plugin bundle after product authorization. The release namespace is
+`v1.2`; npm packages and semantic-version checks use `1.2.0`. The public packages
+remain `@magdox/cli` and `@magdox/mcp`; there is no new public plugin package.
 
-See [scan evidence and release packages](docs/evidence.md) for the working-tree
-v2 upload contract, completeness behavior, local packaging and rollout order.
+See [scan evidence and release packages](docs/evidence.md) for the v2 upload
+contract, completeness behavior, local packaging and API compatibility.
 
 ## Install
 
 ```sh
 brew tap magdox/tap && brew install magdox   # macOS, Linux
-npm install -g @magdox/cli            # macOS, Linux, Windows; Node 18+
+npm install -g @magdox/cli@1.2.0      # macOS, Linux, Windows; Node 18+
 curl -fsSL https://magdox.io/install.sh | sh   # macOS, Linux
 ```
 
 On Windows, use npm or the `windows_amd64` zip from the releases page.
 
-The npm package downloads the binary in a postinstall script. If npm skips
-install scripts, the first `magdox` run performs the same verified download.
+The five binary targets are `darwin_amd64`, `darwin_arm64`, `linux_amd64`,
+`linux_arm64` and `windows_amd64`. Windows ARM64 binaries are not provided.
+Automatic integration hooks require macOS or Linux (POSIX); Windows hooks are
+unsupported even though the Windows x64 CLI engine is supported.
+
+The npm package downloads the public launcher binary in a postinstall script.
+If npm skips install scripts, the first `magdox` run performs the same verified download.
 Install with only one of brew or npm: both place a `magdox` on the PATH and
 the one found first wins.
 
@@ -37,13 +41,15 @@ checksum. The shell installer checks the SHA-256 checksum obtained over HTTPS;
 it needs curl and Python 3 for bounded archive and checksum verification,
 defaults to the user-owned `$HOME/.local/bin`, refuses root execution, and
 never invokes sudo. It honours `MAGDOX_INSTALL_DIR` and `MAGDOX_VERSION`.
+To select this release with the shell installer, set `MAGDOX_VERSION=v1.2`.
 Add the chosen install directory to your PATH. The CLI itself never needs
 root: scan as your ordinary user.
 
 ## Use
 
 ```sh
-magdox login                 # sign in once; downloads the signed rule bundle
+magdox login                 # authorizes the device, installs the private engine and syncs rules
+magdox install               # explicitly verify/install the authorized private engine
 magdox scan .                # scan the current project
 magdox scan --full .         # code, secrets, dependencies (platform database), SBOM, CBOM
 magdox scan --secrets --format json .
@@ -81,8 +87,9 @@ index. Filter findings by severity, engine, vulnerability type and path. View
 25, 50 or 100 numbered findings per page; expand an individual finding for
 code, remediation and public CWE classification.
 Private rule identifiers and rule-authored references are not included.
-These output improvements are in the working source for the next release;
-check `magdox version` before expecting them in an older installed CLI.
+These output features are part of v1.2; check `magdox version` when upgrading
+an older installation. Customer JSON, SARIF, CSV and XML omit private rule
+metadata; review downstream consumers for the changed report schema.
 
 Exit codes: 0 is a complete scan with nothing at or above `--fail-on`; 1 means
 the scan, the upload or an option failed; 3 means incomplete coverage (a pass
@@ -139,9 +146,9 @@ With `--upload`, a findings payload contains rule id, relative file path, line,
 severity and fingerprint, plus requested inventories. Code snippets require
 `--include-code`; secret findings omit their values. URL dependency versions
 are replaced with `[redacted-url]` before reporting, including query credentials.
-`--show-payload` prints one JSON document and always prevents upload, even when
-combined with `--upload`.
-The schema is in `schema/`.
+`--show-payload` prints a redacted JSON preview and always prevents upload, even
+when combined with `--upload`. Private rule metadata is omitted from the preview;
+it is not the exact authenticated upload body. The upload schemas are in `schema/`.
 
 ## How rules arrive
 
@@ -158,7 +165,10 @@ repository symlinks. Reads are limited to 2 MiB per source/certificate file and
 200,000 entries; a directory nested deeper than 128 levels is skipped and the
 scan is marked incomplete. Missing or unreadable targets fail explicitly.
 
-The MCP server for AI coding assistants is a separate package: see
+The private MCP server and signed plugin bundle are installed with
+`magdox mcp install` after product authorization. Only the Claude Code hook
+integration has been tested end to end; other host setups remain experimental.
+This does not establish that every feature or host version works. See
 [docs/mcp-setup.md](docs/mcp-setup.md) and [docs/mcp.md](docs/mcp.md).
 
 ## Licence

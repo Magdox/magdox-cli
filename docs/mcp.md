@@ -1,7 +1,7 @@
 # MAGDOX MCP
 
-Upcoming v1.2 workflow (internal version 1.2.0). These source docs do not announce
-publication or deployment; use them only with compatible provisioned components.
+MAGDOX v1.2 uses an authenticated private MCP bridge. The release namespace is
+`v1.2`; npm packages and semantic-version checks use `1.2.0`.
 
 MAGDOX MCP connects coding tools to your installed, licensed MAGDOX CLI.
 The private MCP executable is a protocol bridge, not a scanner or an
@@ -22,6 +22,12 @@ Login signs in and authorizes the device, installs the private engine and
 synchronizes rules. `magdox mcp install` requires connectivity and product
 authorization; it downloads and verifies the signed private MCP and plugin
 components. Installation does not register client settings or replace hooks.
+The public packages remain `@magdox/cli` and `@magdox/mcp`; there is no new
+public plugin package.
+
+The five binary targets are `darwin_amd64`, `darwin_arm64`, `linux_amd64`,
+`linux_arm64` and `windows_amd64`. Windows ARM64 binaries are not provided.
+Automatic hooks are POSIX-only (macOS and Linux); Windows hooks are unsupported.
 
 Serving and printing configuration require a verified installed MCP component.
 Scans additionally require the authorized engine and rule cache. Missing access,
@@ -52,6 +58,9 @@ Configuration templates require review against your installed host. They are
 not native plugin registrations, automatic installation or a claim that all
 host schemas/UIs have been validated. Reprint the configuration if the launcher
 or project moves. Never overwrite unrelated host settings or hooks.
+Only the Claude Code hook integration has been tested end to end; other host
+setups remain experimental. This does not establish that every feature or host
+version works.
 
 ### Offline operation
 

@@ -2,15 +2,15 @@
 
 When explicitly configured in a supported host, the MAGDOX plugin runs the installed `magdox` CLI on regular files named by write/edit events and returns findings to the agent. A supported Stop hook rescans files recorded for that workspace and session, requesting a block for critical/high findings or incomplete checks. Hosts can omit events or ignore hook responses; this is not automatic enforcement in every editor. The [MCP bridge](mcp.md) provides separate, on-demand tools.
 
-This page describes the working implementation for the next release, not proof that the required launcher/private components are published or deployed. Check your installed version and component availability before setup.
+The v1.2 launcher installs the signed private plugin bundle after product authorization. There is no new public plugin package; `@magdox/cli` and `@magdox/mcp` retain their existing names.
 
 The plugin ships no scanner or rules and makes no network requests of its own. Its CLI scans do not request uploads or remote AI review. The installed CLI can still contact MAGDOX for authorization or rule updates unless offline mode is enabled.
 
 ## Requirements
 
-- A compatible installed MAGDOX CLI, product access, and available signed private components. Sign in separately in a terminal with `magdox login`; hooks do not install software or sign in for you.
+- MAGDOX launcher 1.2.0 or later, the authorized private engine, rules, and compatible signed private components. Sign in separately in a terminal with `magdox login`; hooks do not install software or sign in for you.
 - Node.js 18 or later on a POSIX system with ownership/mode checks.
-- Install the private MCP bridge and plugin with `magdox mcp install` when the authenticated distribution service is available. The public npm `@magdox/mcp` package is only an optional launcher shim; it includes no private bridge, hooks, or skills and downloads no binary.
+- Install the private MCP bridge and plugin with `magdox mcp install` using authenticated product access. The public npm `@magdox/mcp` package is only an optional launcher shim; it includes no private bridge, hooks, or skills and downloads no binary.
 
 Native Windows is unsupported for state-backed hooks and the staged gate: they fail closed without POSIX ownership checks. Existing Windows host templates do not establish Windows support.
 
@@ -28,11 +28,11 @@ Successful unchanged-file checks are debounced for two seconds. Each file is a s
 
 ## Hosts
 
-Review the files in the installed, verified private plugin directory and configure your host explicitly. These are integration templates, not evidence of live host registration or verified host schemas.
+Review the files in the installed, verified private plugin directory and configure your host explicitly. Only the Claude Code hook integration has been tested end to end. Other host setups remain experimental; this validation does not establish that every feature or host version works.
 
 | Host | Setup status |
 |---|---|
-| Claude Code | Local-session template: `claude --plugin-dir "<plugin>"`; end-to-end registration is unverified |
+| Claude Code | Local-session setup: `claude --plugin-dir "<plugin>"`; only hook integration tested end to end |
 | Codex | Experimental manual `AGENTS.md` / hook template; no `.codex-plugin/plugin.json` or native Codex plugin registration |
 | Gemini CLI, Copilot CLI, Cursor, Windsurf, OpenCode | Experimental templates/instructions requiring review against the installed host and explicit trusted paths |
 | No supported editor hooks | Optional staged-content gate in an existing Git hook chain; installation is not automatic |
@@ -71,4 +71,4 @@ Missing access/CLI, malformed reports, incomplete or insufficient coverage, conf
 
 A hook is agent guidance, not a remote merge gate: the agent can still finish with findings open, and a host that skips hooks gets no check. Filesystem confinement is not an OS sandbox against concurrent changes by another trusted-user process. The staged gate can be explicitly bypassed and does not enforce remote policy.
 
-Keep the CLI in CI as a separate enforced gate (`magdox scan --full --format json --fail-on high -- .`), with exit 3 (incomplete coverage) and exit 4 (threshold findings) both failing the job. Run a full-project scan before release and report incomplete checks honestly. Local fixture tests do not establish hosted-CI success, live host compatibility, or production availability.
+Keep the CLI in CI as a separate enforced gate (`magdox scan --full --format json --fail-on high -- .`), with exit 3 (incomplete coverage) and exit 4 (threshold findings) both failing the job. Provision an authorized private engine and rules before scanning; keep credentials and private artifacts out of shared caches and uploaded artifacts. Run a full-project scan before release and report incomplete checks honestly.
