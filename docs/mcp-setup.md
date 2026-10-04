@@ -1,6 +1,6 @@
 # MAGDOX MCP quick setup
 
-Set up MAGDOX v1.2 with launcher 1.2.0 or later, product authorization and
+Set up MAGDOX v1.3 with launcher 1.3.0 or later, product authorization and
 compatible signed private engine, MCP and plugin components.
 
 Use your approved installed MAGDOX launcher. Complete authentication and private
@@ -9,7 +9,7 @@ component installation in a terminal:
 ```sh
 magdox login
 magdox mcp install
-magdox mcp config generic --root "/absolute/path/to/project"
+magdox mcp config generic --root "/absolute/path/to/repository"
 ```
 
 Login prepares device authorization, the private engine and rules. MCP installation
@@ -18,13 +18,13 @@ components. It does not automatically install host settings or hooks.
 
 Review and merge the generated configuration into your client's local MCP
 settings. It uses the absolute launcher path, separate `mcp serve --root ABS`
-arguments and no shell. Select an existing absolute project directory. Do not
+arguments and no shell. Select an existing absolute repository directory. Do not
 put credentials in the configuration or overwrite unrelated settings.
 
 For direct stdio operation:
 
 ```sh
-magdox mcp serve --root "/absolute/path/to/project"
+magdox mcp serve --root "/absolute/path/to/repository"
 ```
 
 Use `--offline` only after preparing components and caches online, while offline

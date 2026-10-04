@@ -18,7 +18,7 @@ under `node_modules`, `vendor`, virtual environments, build output (`dist`,
 | Swift | `Package.resolved` (v1, v2, v3) | `pkg:swift` |
 
 A lockfile wins over the manifest beside it: `pyproject.toml` is not read when
-`poetry.lock`, `uv.lock` or `Pipfile.lock` sits next to it, a project file when
+`poetry.lock`, `uv.lock` or `Pipfile.lock` sits next to it, a .NET project file (`*.csproj`) when
 `packages.lock.json` does, and `build.gradle` when `gradle.lockfile` does. The
 same package read twice from one directory is reported once.
 
@@ -34,9 +34,9 @@ say, so their packages are reported as transitive.
 a floating version (`1.*`, `latest.release`), a version held in a variable the
 file does not define, or a Maven version inherited from an external parent or
 BOM is listed under `unresolved` instead of guessed. `pom.xml`, `build.gradle`
-and project files without a lockfile also say that their transitive
+and repository files without a lockfile also say that their transitive
 dependencies were not resolved. Local, workspace, path and git sources are the
-project's own code or not on a registry, so they are skipped. A file that
+repository's own code or not on a registry, so they are skipped. A file that
 cannot be parsed is listed under `unresolved` too, and the rest of the
 inventory is still read.
 

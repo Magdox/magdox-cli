@@ -39,11 +39,11 @@ Keys: a typed key is stored owner-only (0600) in the MAGDOX config directory,
 beside your sign-in. `--key-env VAR` stores only the variable name, which is
 what CI should use. `magdox ai status` never prints a key.
 
-## Approve a project, then scan
+## Approve a repository, then scan
 
 ```sh
 magdox scan --ai --ai-show-prompt .     # see exactly what would be sent; sends nothing
-magdox ai allow .                       # approve this project
+magdox ai allow .                       # approve this repository
 magdox scan --ai .
 magdox scan --ai-fix .                  # verdicts plus engine-verified fixes
 ```
@@ -52,7 +52,7 @@ Approval is stored in your config, never in the repository, so a cloned repo
 cannot approve sending itself anywhere. In CI set `MAGDOX_AI_CONSENT=1`.
 
 What is sent: the rule and its guidance, the engine's trace, and up to about
-240 lines around the finding, with paths relative to the project. Anything
+240 lines around the finding, with paths relative to the repository. Anything
 the secrets engine recognises, and credential-style assignments, are replaced
 with `[REDACTED]` first.
 

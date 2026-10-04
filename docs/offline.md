@@ -21,7 +21,7 @@ an account role, cached artifact or `--offline` does not create that access.
 | Config directory | | `MAGDOX_CONFIG_DIR` | the OS config directory |
 | Cache directory | | `MAGDOX_CACHE_DIR` | the OS cache directory |
 | AI provider for one run | | `MAGDOX_AI_PROVIDER` | the active provider |
-| AI consent in CI | | `MAGDOX_AI_CONSENT=1` | per-project approval |
+| AI consent in CI | | `MAGDOX_AI_CONSENT=1` | per-repository approval |
 
 `magdox config show` prints every effective value and its source.
 
@@ -36,6 +36,12 @@ an account role, cached artifact or `--offline` does not create that access.
   pinned with `magdox vulndb use`, or the cached copy, in that order;
 - `--upload` is refused;
 - `--ai` works only with a local provider (for example `magdox ai add ollama`).
+
+Cached files do not replace product authorization: offline commands still
+require valid local access. Licence-state checks serialize timestamp updates
+and sample the clock after acquiring the state lock, so simultaneous scans do
+not mistake lock-wait time for rollback. Actual backward time changes, expired
+grants and denied access still fail; do not delete state to work around them.
 
 ## Air-gapped machines
 

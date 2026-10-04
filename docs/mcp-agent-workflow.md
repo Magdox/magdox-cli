@@ -1,6 +1,6 @@
 # MAGDOX in coding agents
 
-MAGDOX v1.2 requires launcher 1.2.0 or later, product authorization and
+MAGDOX v1.3 requires launcher 1.3.0 or later, product authorization and
 compatible installed private engine, MCP and plugin components.
 
 Prepare the installed, licensed CLI and signed private bridge:
@@ -8,7 +8,7 @@ Prepare the installed, licensed CLI and signed private bridge:
 ```sh
 magdox login
 magdox mcp install
-magdox mcp config generic --root "/absolute/path/to/project"
+magdox mcp config generic --root "/absolute/path/to/repository"
 ```
 
 Review and merge the generated entry into your client's local MCP settings.
@@ -25,10 +25,10 @@ agent behavior, not an enforced merge gate.
 
 ## Workflow
 
-1. Scan the explicit project root to establish a baseline.
-2. Use snippet checks for early feedback, not as a substitute for project checks.
+1. Scan the explicit repository root to establish a baseline.
+2. Use snippet checks for early feedback, not as a substitute for repository checks.
 3. Fix findings in scope using public titles, messages and remediation.
-4. Run project tests and rescan final changes; run separate secret/dependency
+4. Run repository tests and rescan final changes; run separate secret/dependency
    checks where appropriate and supported.
 5. Report remaining findings and incomplete/missing coverage. Missing access,
    rules, advisories or supported coverage is unchecked, not clean.
@@ -50,7 +50,7 @@ HTTP transport through a public tunnel or proxy.
 
 ## Verification and enforcement
 
-Existing project policy remains separate. Empty findings do not override
+Existing repository policy remains separate. Empty findings do not override
 incomplete coverage. CLI exit 3 indicates incomplete analysis; exit 4 indicates
 findings at the configured threshold and can coexist with incomplete coverage.
 Check completeness as well as severity, and do not suppress failing checks.

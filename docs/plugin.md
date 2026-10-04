@@ -2,13 +2,13 @@
 
 When explicitly configured in a supported host, the MAGDOX plugin runs the installed `magdox` CLI on regular files named by write/edit events and returns findings to the agent. A supported Stop hook rescans files recorded for that workspace and session, requesting a block for critical/high findings or incomplete checks. Hosts can omit events or ignore hook responses; this is not automatic enforcement in every editor. The [MCP bridge](mcp.md) provides separate, on-demand tools.
 
-The v1.2 launcher installs the signed private plugin bundle after product authorization. There is no new public plugin package; `@magdox/cli` and `@magdox/mcp` retain their existing names.
+The v1.3 launcher installs the signed private plugin bundle after product authorization. There is no new public plugin package; `@magdox/cli` and `@magdox/mcp` retain their existing names.
 
 The plugin ships no scanner or rules and makes no network requests of its own. Its CLI scans do not request uploads or remote AI review. The installed CLI can still contact MAGDOX for authorization or rule updates unless offline mode is enabled.
 
 ## Requirements
 
-- MAGDOX launcher 1.2.0 or later, the authorized private engine, rules, and compatible signed private components. Sign in separately in a terminal with `magdox login`; hooks do not install software or sign in for you.
+- MAGDOX launcher 1.3.0 or later, the authorized private engine, rules, and compatible signed private components. Sign in separately in a terminal with `magdox login`; hooks do not install software or sign in for you.
 - Node.js 18 or later on a POSIX system with ownership/mode checks.
 - Install the private MCP bridge and plugin with `magdox mcp install` using authenticated product access. The public npm `@magdox/mcp` package is only an optional launcher shim; it includes no private bridge, hooks, or skills and downloads no binary.
 
@@ -40,10 +40,10 @@ Review the files in the installed, verified private plugin directory and configu
 The plugin's `.mcp.json` is intentionally empty. Configure MCP separately with explicit absolute roots:
 
 ```sh
-magdox mcp config generic --root /absolute/project
+magdox mcp config generic --root /absolute/repository
 ```
 
-Select the appropriate client instead of `generic`, then review and merge the generated configuration. It uses the absolute installed public launcher and separate `mcp serve --root` arguments, not a shell. Repeat `--root` for additional trusted directories (maximum 32); relative tool paths use the first root. Do not assume automatic project-root variable expansion or omit the root.
+Select the appropriate client instead of `generic`, then review and merge the generated configuration. It uses the absolute installed public launcher and separate `mcp serve --root` arguments, not a shell. Repeat `--root` for additional trusted directories (maximum 32); relative tool paths use the first root. Do not assume automatic repository-root variable expansion or omit the root.
 
 For Cursor's POSIX-shell template, set `MAGDOX_PLUGIN_DIR` to the trusted absolute installed plugin directory and ensure the editor inherits it. Copilot's Bash template similarly requires `PLUGIN_ROOT`. Keep full script paths quoted; do not paste untrusted repository text into shell commands. Consult the installed plugin README for template-specific path handling and limits.
 
@@ -65,10 +65,10 @@ For offline editor checks, set `MAGDOX_PLUGIN_ARGS=--offline`; cached access/rul
 
 After review, add `node "<plugin>/pre-commit/magdox-staged.js"` to your existing Git hook chain. No hooks are installed or replaced automatically. The gate scans changed staged regular-file blobs in a fresh private temporary snapshot, not unstaged working-tree bytes. It forces offline mode and includes tests, then removes the snapshot on normal success or failure.
 
-Missing access/CLI, malformed reports, incomplete or insufficient coverage, configured-threshold findings, and changes to selected staged blobs during the scan block the commit. Symlinks, submodules, unresolved merges, and ambiguous paths are rejected. Unsupported file types can therefore block even a documentation-only commit. This bounded check is not a whole-project or dependency scan.
+Missing access/CLI, malformed reports, incomplete or insufficient coverage, configured-threshold findings, and changes to selected staged blobs during the scan block the commit. Symlinks, submodules, unresolved merges, and ambiguous paths are rejected. Unsupported file types can therefore block even a documentation-only commit. This bounded check is not a whole-repository or dependency scan.
 
 ## Limits
 
 A hook is agent guidance, not a remote merge gate: the agent can still finish with findings open, and a host that skips hooks gets no check. Filesystem confinement is not an OS sandbox against concurrent changes by another trusted-user process. The staged gate can be explicitly bypassed and does not enforce remote policy.
 
-Keep the CLI in CI as a separate enforced gate (`magdox scan --full --format json --fail-on high -- .`), with exit 3 (incomplete coverage) and exit 4 (threshold findings) both failing the job. Provision an authorized private engine and rules before scanning; keep credentials and private artifacts out of shared caches and uploaded artifacts. Run a full-project scan before release and report incomplete checks honestly.
+Keep the CLI in CI as a separate enforced gate (`magdox scan --full --format json --fail-on high -- .`), with exit 3 (incomplete coverage) and exit 4 (threshold findings) both failing the job. Run a full-repository scan before release and report incomplete checks honestly. Local fixture tests do not establish hosted-CI success, live host compatibility, or production availability.
