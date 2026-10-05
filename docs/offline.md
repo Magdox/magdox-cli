@@ -54,8 +54,12 @@ The launcher does not expose offline import for MCP or integration bundles.
    to write the current bundle to a file you can carry across. Export also
    writes `magdox-vulns.bundle.sig`; carry both files.
 2. On the air-gapped machine: `magdox vulndb use <file>` with the `.sig` in the
-   same folder, and a perpetual,
-   air-gap eligible licence (`magdox license import`).
+   same folder, and a perpetual, air-gap eligible licence:
+   - run `magdox license request` and give the one-line code it prints to an
+     owner or admin, who pastes it under Settings, Offline licences;
+   - copy back the one licence file they download and run
+     `magdox license import <file>`. The file holds the licence and the
+     encrypted rules, and works only on the machine that printed the code.
 3. Run with `--offline`. Every scan records the database's build date and
    digest in its provenance, so an old copy shows as old in the console rather
    than passing silently.
