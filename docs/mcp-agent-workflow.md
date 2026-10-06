@@ -1,6 +1,6 @@
 # MAGDOX in coding agents
 
-MAGDOX v1.3 requires launcher 1.3.0 or later, product authorization and
+MAGDOX v1.3.1 requires launcher 1.3.0 or later, product authorization and
 compatible installed private engine, MCP and plugin components.
 
 Prepare the installed, licensed CLI and signed private bridge:

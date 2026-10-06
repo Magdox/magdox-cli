@@ -1,6 +1,6 @@
 # MAGDOX MCP quick setup
 
-Set up MAGDOX v1.3 with launcher 1.3.0 or later, product authorization and
+Set up MAGDOX v1.3.1 with launcher 1.3.0 or later, product authorization and
 compatible signed private engine, MCP and plugin components.
 
 Use your approved installed MAGDOX launcher. Complete authentication and private
