@@ -6,9 +6,9 @@ on your own machine. Findings and inventories upload only when requested;
 authentication and rule renewal have separate network paths. Source snippets
 require explicit sharing consent.
 
-**v1.3.1** uses a public launcher to provision the private engine, MCP server and
+**v1.3.2** uses a public launcher to provision the private engine, MCP server and
 signed plugin bundle after product authorization. The release namespace is
-`v1.3.1`; npm packages and semantic-version checks use `1.3.1`. The public packages
+`v1.3.2`; npm packages and semantic-version checks use `1.3.2`. The public packages
 remain `@magdox/cli` and `@magdox/mcp`; there is no new public plugin package.
 
 See [scan evidence and release packages](docs/evidence.md) for the v2 upload
@@ -18,7 +18,7 @@ contract, completeness behavior, local packaging and API compatibility.
 
 ```sh
 brew tap magdox/tap && brew install magdox   # macOS, Linux
-npm install -g @magdox/cli@1.3.1      # macOS, Linux, Windows; Node 18+
+npm install -g @magdox/cli@1.3.2      # macOS, Linux, Windows; Node 18+
 curl -fsSL https://magdox.io/install.sh | sh   # macOS, Linux
 ```
 
@@ -38,10 +38,17 @@ Release archives and checksums are on the [releases page](https://github.com/Mag
 Every checksum file is signed with Sigstore cosign. The npm installer checks
 that signature against the release workflow's identity, then the SHA-256
 checksum. The shell installer checks the SHA-256 checksum obtained over HTTPS;
-it needs curl and Python 3 for bounded archive and checksum verification,
-defaults to the user-owned `$HOME/.local/bin`, refuses root execution, and
-never invokes sudo. It honours `MAGDOX_INSTALL_DIR` and `MAGDOX_VERSION`.
-To select this release with the shell installer, set `MAGDOX_VERSION=v1.3.1`.
+when cosign is installed it also verifies the signature and refuses a release
+that does not verify. Set `MAGDOX_REQUIRE_SIGNATURE=1` to refuse installation
+when cosign is missing. It needs curl and Python 3 for bounded archive and
+checksum verification, defaults to the user-owned `$HOME/.local/bin`, refuses
+root execution, and never invokes sudo. It honours `MAGDOX_INSTALL_DIR` and
+`MAGDOX_VERSION`. To select this release with the shell installer, set
+`MAGDOX_VERSION=v1.3.2`.
+
+From v1.3.2, releases also carry a CycloneDX software bill of materials
+(`magdox-sbom.cdx.json`) listing the CLI's third-party modules, signed with
+cosign like the checksums (`.sig` and `.pem` beside it).
 Add the chosen install directory to your PATH. The CLI itself never needs
 root: scan as your ordinary user.
 
@@ -87,7 +94,7 @@ index. Filter findings by severity, engine, vulnerability type and path. View
 25, 50 or 100 numbered findings per page; expand an individual finding for
 code, remediation and public CWE classification.
 Private rule identifiers and rule-authored references are not included.
-These output features are part of v1.3.1; check `magdox version` when upgrading
+These output features are part of v1.3.2; check `magdox version` when upgrading
 an older installation. Customer JSON, SARIF, CSV and XML omit private rule
 metadata; review downstream consumers for the changed report schema.
 

@@ -1,7 +1,7 @@
 # MAGDOX MCP
 
-MAGDOX v1.3.1 uses an authenticated private MCP bridge. The release namespace is
-`v1.3.1`; npm packages and semantic-version checks use `1.3.1`.
+MAGDOX v1.3.2 uses an authenticated private MCP bridge. The release namespace is
+`v1.3.2`; npm packages and semantic-version checks use `1.3.2`.
 
 MAGDOX MCP connects coding tools to your installed, licensed MAGDOX CLI.
 The private MCP executable is a protocol bridge, not a scanner or an
@@ -148,6 +148,15 @@ Empty findings with missing or incomplete coverage are not a pass. Raw stderr,
 invalid stdout and panic details are not returned. CLI execution is bounded to
 15 minutes, 16 MiB stdout and 64 KiB stderr; oversized/deep reports fail closed.
 Closing stdio input drains in-flight requests before exit.
+
+Each tool result stays within 64 KiB so an agent can read it. A larger report
+keeps its most severe findings and adds `truncated` (`field`, `returned`,
+`total`, `notice`); `magdox_risk` keeps its priority order and puts that note in
+`notices`, so a saved result still works as a baseline. Scan a narrower path to
+see the rest. Each scan pass keeps the CLI's public `reason` for being partial,
+such as files skipped. On `initialize` the server returns instructions naming
+its repository root(s), where relative paths resolve and what `complete: false`
+means.
 
 Code-scan completion requires a findings array, positive rule/file coverage and
 completed named SAST and IaC passes from the paired CLI. Secret-scan completion

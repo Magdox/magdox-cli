@@ -2,7 +2,7 @@
 
 When explicitly configured in a supported host, the MAGDOX plugin runs the installed `magdox` CLI on regular files named by write/edit events and returns findings to the agent. A supported Stop hook rescans files recorded for that workspace and session, requesting a block for critical/high findings or incomplete checks. Hosts can omit events or ignore hook responses; this is not automatic enforcement in every editor. The [MCP bridge](mcp.md) provides separate, on-demand tools.
 
-The v1.3.1 launcher installs the signed private plugin bundle after product authorization. There is no new public plugin package; `@magdox/cli` and `@magdox/mcp` retain their existing names.
+The v1.3.2 launcher installs the signed private plugin bundle after product authorization. There is no new public plugin package; `@magdox/cli` and `@magdox/mcp` retain their existing names.
 
 The plugin ships no scanner or rules and makes no network requests of its own. Its CLI scans do not request uploads or remote AI review. The installed CLI can still contact MAGDOX for authorization or rule updates unless offline mode is enabled.
 

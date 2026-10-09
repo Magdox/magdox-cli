@@ -1,6 +1,6 @@
 # Scan evidence and release packages
 
-MAGDOX v1.3.1 sends version 2 findings uploads to a compatible API and creates
+MAGDOX v1.3.2 sends version 2 findings uploads to a compatible API and creates
 local report packages. Scanning requires an authorized private engine and rules.
 
 ## Review locally, then preview an optional upload
@@ -215,8 +215,8 @@ output limits can reject oversized results rather than truncate findings.
 
 The API accepts payload versions 1 and 2. An older API rejects version 2,
 deliberately avoiding silent evidence loss; use an API compatible with your CLI's
-payload version. Payload versions are separate from the v1.3.1 release namespace
-and the 1.3.1 package version. Existing findings do not gain historical traces
+payload version. Payload versions are separate from the v1.3.2 release namespace
+and the 1.3.2 package version. Existing findings do not gain historical traces
 until rescanned.
 
 ## Customer upload choice

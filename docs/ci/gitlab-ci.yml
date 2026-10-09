@@ -6,7 +6,7 @@
 # Start a pipeline manually on the protected default branch, then approve this
 # manual scanner job. Public/internal projects and MR pipelines are excluded.
 #
-# Prerequisite: the MAGDOX v1.3.1 launcher release (package version 1.3.1) and an available
+# Prerequisite: the MAGDOX v1.3.2 launcher release (package version 1.3.2) and an available
 # authenticated distribution service with signed engine artifacts and rules.
 # Provision the private engine before scanning. Review this template for your
 # runner and verify the resulting scan coverage.
@@ -30,7 +30,7 @@ magdox:
     default: false # Do not inherit repository build hooks, caches or artifacts.
   cache: []
   variables:
-    MAGDOX_VERSION: "v1.3.1" # Release namespace; npm/semantic version is 1.3.1.
+    MAGDOX_VERSION: "v1.3.2" # Release namespace; npm/semantic version is 1.3.2.
     MAGDOX_COMMIT: $CI_COMMIT_SHA
     MAGDOX_BRANCH: $CI_COMMIT_REF_NAME
   before_script:
